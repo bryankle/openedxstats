@@ -126,24 +126,16 @@ def process_log_file(gz_file, log_name):
 
 
 def get_accessible_keys(bucket, prefix="edx-static"):
-    accessible_keys = []
     for key in bucket.list(prefix=prefix):
-        if DEBUG:
-            print(".", end='', flush=True)
         if key.storage_class != "GLACIER":
-            accessible_keys.append(key)
-            if DEBUG:
-                print("Key: %r" % (key,))
-
-    if DEBUG:
-        print("Accessible keys len: %s" % len(accessible_keys))
-
-    return accessible_keys
+            yield key
 
 
 def process_keys(accessible_keys):
     num_files_processed = 0
     for key in accessible_keys:
+        if DEBUG:
+            print("Processing %r" % (key,))
         # Create an in-memory bytes IO buffer
         with io.BytesIO() as b:
             key.get_file(b)
