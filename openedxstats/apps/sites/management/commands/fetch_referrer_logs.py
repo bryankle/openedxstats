@@ -129,9 +129,11 @@ def get_accessible_keys(bucket, prefix="edx-static"):
     accessible_keys = []
     for key in bucket.list(prefix=prefix):
         if DEBUG:
-            print("Key: %r" % (key,))
+            print(".", end='', flush=True)
         if key.storage_class != "GLACIER":
             accessible_keys.append(key)
+            if DEBUG:
+                print("Key: %r" % (key,))
 
     if DEBUG:
         print("Accessible keys len: %s" % len(accessible_keys))
