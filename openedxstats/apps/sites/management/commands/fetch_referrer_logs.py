@@ -125,7 +125,7 @@ def process_log_file(gz_file, log_name):
         log_to_save.save()
 
 
-def get_accessible_keys(bucket, prefix="edx-static-cloudfront"):
+def get_accessible_keys(bucket, prefix="edx-static"):
     accessible_keys = []
     for key in bucket.list(prefix=prefix):
         if key.storage_class != "GLACIER":
