@@ -128,6 +128,8 @@ def process_log_file(gz_file, log_name):
 def get_accessible_keys(bucket, prefix="edx-static"):
     accessible_keys = []
     for key in bucket.list(prefix=prefix):
+        if DEBUG:
+            print("Key: %r" % (key,))
         if key.storage_class != "GLACIER":
             accessible_keys.append(key)
 
