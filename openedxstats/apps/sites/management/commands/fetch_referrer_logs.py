@@ -125,8 +125,9 @@ def process_log_file(gz_file, log_name):
         log_to_save.save()
 
 
-def get_accessible_keys(bucket, prefix="edx-static"):
+def get_accessible_keys(bucket, prefix="edx-static/"):
     for key in bucket.list(prefix=prefix):
+        print(f"Key: {key}, {key.storage_class}")
         if key.storage_class != "GLACIER":
             yield key
 
