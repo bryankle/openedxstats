@@ -1,3 +1,4 @@
+import collections
 import datetime
 import gzip
 import io
@@ -99,7 +100,7 @@ def add_to_filename_log(log_name):
 def process_log_file(file_content, log_name):
     if DEBUG:
         print("Processing %s ..." % log_name)
-    line_counter = {}
+    line_counter = collections.defaultdict(int)
     aggregate_logs = []
 
     for line in file_content.splitlines():
@@ -108,15 +109,10 @@ def process_log_file(file_content, log_name):
 
         logline = LogLine(line)
         if logline.uri.startswith("/openedx-logos"):
-            line_key = "|".join((logline.host, logline.date, log_name))
-            if line_key in line_counter:
-                line_counter[line_key] += 1
-            else:
-                line_counter[line_key] = 1
+            line_key = (logline.host, logline.date, log_name)
+            line_counter[line_key] += 1
 
-    for aggregate_line_key in line_counter:
-        (host, date, log_name) = aggregate_line_key.split("|")
-        line_count = line_counter[aggregate_line_key]
+    for (host, date, log_name), line_count in line_counter.items():
         new_aggregate_log = AccessLogAggregate(
             domain=host,
             access_date=date,
@@ -130,7 +126,7 @@ def process_log_file(file_content, log_name):
 
 def recent_dates():
     now = datetime.datetime.now()
-    for days_ago in range(40, -1, -1):
+    for days_ago in range(31, -1, -1):
         day = now - datetime.timedelta(days=days_ago)
         yield day.strftime("%Y-%m-%d")
 
@@ -147,7 +143,7 @@ def get_key_content(key):
     with io.BytesIO() as b:
         key.get_file(b)
         b.seek(0)
-        if key.endswith(".gz"):
+        if key.name.endswith(".gz"):
             b = gzip.GzipFile(None, 'rb', fileobj=b)
         return b.read().decode('utf8')
 
@@ -156,15 +152,16 @@ def process_keys(accessible_keys):
     for key in accessible_keys:
         if DEBUG:
             print("Processing %r" % (key,))
-        continue
         # Process in-memory file
         key_name = key.name
         if not is_in_filename_log(key_name):
-            file_content = get_key_content(key_name)
+            file_content = get_key_content(key)
+            print(file_content)
+            continue
             if DEBUG:
                 print("%s not found, adding!" % key_name)
-            add_to_filename_log(key_name)
             process_log_file(file_content, key_name)
+            add_to_filename_log(key_name)
             num_files_processed += 1
     return num_files_processed
 
